@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Zippy's – Siesta Key Delivery</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lime: #C8F135;
+    --teal: #00C9A7;
+    --navy: #0D1F2D;
+    --coral: #FF6B6B;
+    --sand: #FFF8EE;
+    --card: #ffffff;
+    --muted: #8A99A8;
+    --radius: 20px;
+    --shadow: 0 8px 32px rgba(13,31,45,0.12);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; background:#f0f4f7; font-family:'Nunito',sans-serif; overflow:hidden; }
+
+  /* ── APP SHELL ── */
+  #app { width:100%; max-width:430px; height:100dvh; margin:0 auto; background:var(--sand); display:flex; flex-direction:column; position:relative; overflow:hidden; box-shadow:0 0 60px rgba(0,0,0,0.18); }
+
+  /* ── SCREENS ── */
+  .screen { position:absolute; inset:0; display:flex; flex-direction:column; transition:transform .38s cubic-bezier(.4,0,.2,1), opacity .38s; }
+  .screen.hidden { transform:translateY(32px); opacity:0; pointer-events:none; }
+
+  /* ── TOP BAR ── */
+  .topbar { background:var(--navy); padding:18px 22px 14px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .logo { font-family:'Pacifico',cursive; color:var(--lime); font-size:26px; letter-spacing:-.5px; }
+  .logo span { color:#fff; }
+  .topbar-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+  .avatar { width:38px; height:38px; border-radius:50%; background:var(--teal); display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:15px; }
+
+  /* ── SCROLL AREA ── */
+  .scroll-area { flex:1; overflow-y:auto; padding:0 0 80px; scroll-behavior:smooth; }
+  .scroll-area::-webkit-scrollbar { display:none; }
+
+  /* ── BOTTOM NAV ── */
+  .bottomnav { background:var(--navy); display:flex; justify-content:space-around; padding:10px 0 16px; flex-shrink:0; position:absolute; bottom:0; left:0; right:0; z-index:50; }
+  .nav-btn { display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer; padding:4px 14px; }
+  .nav-btn .icon { font-size:22px; }
+  .nav-btn .label { font-size:10px; color:var(--muted); font-weight:700; font-family:'Nunito',sans-serif; }
+  .nav-btn.active .label { color:var(--lime); }
+  .nav-btn.active .icon { filter:drop-shadow(0 0 6px var(--lime)); }
+
+  /* ── HERO ── */
+  .hero { background:linear-gradient(135deg,var(--navy) 0%,#1a3a4a 100%); margin:16px; border-radius:var(--radius); padding:22px 20px; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; right:-30px; top:-30px; width:180px; height:180px; border-radius:50%; background:var(--teal); opacity:.12; }
+  .hero::after { content:'⚡'; font-size:80px; position:absolute; right:12px; top:50%; transform:translateY(-50%); opacity:.18; }
+  .hero h2 { font-size:22px; font-weight:900; color:#fff; line-height:1.25; }
+  .hero h2 em { color:var(--lime); font-style:normal; }
+  .hero p { font-size:12px; color:var(--muted); margin-top:6px; }
+  .hero-badge { display:inline-flex; align-items:center; gap:6px; background:var(--lime); color:var(--navy); font-size:11px; font-weight:800; border-radius:20px; padding:4px 12px; margin-top:12px; }
+
+  /* ── SEARCH ── */
+  .search-wrap { margin:0 16px 6px; position:relative; }
+  .search-wrap input { width:100%; background:#fff; border:2px solid transparent; border-radius:14px; padding:13px 16px 13px 44px; font-size:14px; font-family:'Nunito',sans-serif; font-weight:600; color:var(--navy); box-shadow:var(--shadow); outline:none; transition:border .2s; }
+  .search-wrap input:focus { border-color:var(--teal); }
+  .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:18px; }
+
+  /* ── SECTION HEADER ── */
+  .section-hdr { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 8px; }
+  .section-hdr h3 { font-size:16px; font-weight:900; color:var(--navy); }
+  .section-hdr a { font-size:12px; color:var(--teal); font-weight:700; cursor:pointer; }
+
+  /* ── CATEGORY PILLS ── */
+  .cats { display:flex; gap:10px; padding:4px 16px 8px; overflow-x:auto; }
+  .cats::-webkit-scrollbar { display:none; }
+  .cat-pill { flex-shrink:0; background:#fff; border:2px solid #eee; border-radius:30px; padding:8px 16px; font-size:12px; font-weight:800; color:var(--navy); cursor:pointer; transition:.2s; display:flex; align-items:center; gap:6px; }
+  .cat-pill.active, .cat-pill:hover { background:var(--navy); border-color:var(--navy); color:var(--lime); }
+
+  /* ── RESTAURANT CARDS ── */
+  .rest-grid { display:flex; flex-direction:column; gap:14px; padding:0 16px; }
+  .rest-card { background:#fff; border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); cursor:pointer; transition:transform .18s; }
+  .rest-card:hover { transform:translateY(-2px); }
+  .rest-img { height:140px; background:var(--navy); position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:64px; }
+  .rest-badge { position:absolute; top:10px; left:10px; background:var(--lime); color:var(--navy); font-size:10px; font-weight:900; padding:3px 10px; border-radius:20px; }
+  .rest-badge.promo { background:var(--coral); color:#fff; }
+  .rest-info { padding:14px; }
+  .rest-info h4 { font-size:16px; font-weight:900; color:var(--navy); }
+  .rest-meta { display:flex; align-items:center; gap:12px; margin-top:6px; }
+  .rest-meta span { font-size:12px; color:var(--muted); font-weight:600; display:flex; align-items:center; gap:4px; }
+  .rest-meta .tag { background:#f0f4f7; border-radius:6px; padding:2px 8px; font-size:11px; color:var(--navy); font-weight:700; }
+
+  /* ── ORDER SCREEN ── */
+  .menu-header { background:var(--navy); padding:16px 20px; display:flex; align-items:center; gap:14px; flex-shrink:0; }
+  .back-btn { background:rgba(255,255,255,.1); border:none; color:#fff; width:36px; height:36px; border-radius:10px; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .menu-header h2 { font-size:18px; font-weight:900; color:#fff; }
+  .menu-header p { font-size:11px; color:var(--teal); }
+  .menu-list { padding:16px; display:flex; flex-direction:column; gap:12px; }
+  .menu-item { background:#fff; border-radius:16px; padding:14px; display:flex; gap:14px; align-items:center; box-shadow:0 4px 16px rgba(0,0,0,0.07); }
+  .menu-item-emoji { font-size:40px; flex-shrink:0; }
+  .menu-item-info { flex:1; }
+  .menu-item-info h4 { font-size:14px; font-weight:800; color:var(--navy); }
+  .menu-item-info p { font-size:11px; color:var(--muted); margin-top:2px; }
+  .menu-item-price { font-size:15px; font-weight:900; color:var(--teal); margin-top:4px; }
+  .add-btn { background:var(--navy); color:var(--lime); border:none; width:32px; height:32px; border-radius:10px; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:900; flex-shrink:0; }
+  .add-btn:active { background:var(--teal); }
+
+  /* ── CART BUBBLE ── */
+  .cart-bubble { margin:0 16px 8px; background:var(--teal); border-radius:14px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; box-shadow:0 6px 24px rgba(0,201,167,.35); }
+  .cart-bubble .cb-left { font-size:13px; font-weight:800; color:#fff; }
+  .cart-bubble .cb-count { background:var(--lime); color:var(--navy); border-radius:20px; font-size:11px; font-weight:900; padding:2px 10px; margin-left:8px; }
+  .cart-bubble .cb-right { font-size:16px; font-weight:900; color:var(--lime); }
+
+  /* ── CHECKOUT ── */
+  .checkout-body { padding:16px; display:flex; flex-direction:column; gap:14px; }
+  .checkout-card { background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
+  .checkout-card h3 { font-size:14px; font-weight:900; color:var(--navy); margin-bottom:10px; }
+  .checkout-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f4f7; }
+  .checkout-row:last-child { border:none; }
+  .checkout-row span:first-child { font-size:13px; color:#555; font-weight:600; }
+  .checkout-row span:last-child { font-size:13px; font-weight:800; color:var(--navy); }
+  .checkout-row.total span { font-size:16px; font-weight:900; color:var(--teal); }
+  .addr-box { background:#f7fafc; border-radius:12px; padding:12px; display:flex; gap:10px; align-items:flex-start; }
+  .addr-box .pin { font-size:22px; }
+  .addr-box p { font-size:13px; font-weight:700; color:var(--navy); }
+  .addr-box small { font-size:11px; color:var(--muted); }
+  .pay-row { display:flex; gap:10px; }
+  .pay-method { flex:1; background:#f0f4f7; border-radius:12px; padding:12px; text-align:center; cursor:pointer; border:2px solid transparent; }
+  .pay-method.active { border-color:var(--teal); background:#e6faf6; }
+  .pay-method .pm-icon { font-size:24px; }
+  .pay-method p { font-size:11px; font-weight:800; color:var(--navy); margin-top:4px; }
+  .place-btn { background:var(--navy); color:var(--lime); border:none; border-radius:16px; padding:17px; width:100%; font-size:16px; font-weight:900; font-family:'Nunito',sans-serif; cursor:pointer; letter-spacing:.3px; margin-top:4px; transition:background .2s; }
+  .place-btn:hover { background:var(--teal); color:#fff; }
+
+  /* ── TRACK SCREEN ── */
+  .track-top { background:var(--navy); padding:20px; flex-shrink:0; }
+  .track-top h2 { font-size:20px; font-weight:900; color:#fff; }
+  .track-top p { font-size:12px; color:var(--teal); margin-top:4px; }
+  .status-steps { display:flex; align-items:center; margin-top:16px; }
+  .step { display:flex; flex-direction:column; align-items:center; flex:1; }
+  .step-dot { width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,.15); border:2px solid rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:13px; transition:.4s; }
+  .step-dot.done { background:var(--lime); border-color:var(--lime); }
+  .step-dot.active { background:var(--teal); border-color:var(--teal); box-shadow:0 0 0 4px rgba(0,201,167,.3); animation:pulse 1.5s infinite; }
+  .step-line { flex:1; height:2px; background:rgba(255,255,255,.15); margin-top:-14px; }
+  .step-line.done { background:var(--lime); }
+  .step-label { font-size:9px; color:var(--muted); margin-top:6px; font-weight:700; text-align:center; }
+  .step-label.done, .step-label.active { color:#fff; }
+
+  /* ── MAP ── */
+  .map-container { flex:1; position:relative; background:#e8f0f8; overflow:hidden; min-height:260px; }
+  .map-svg { width:100%; height:100%; }
+  /* Siesta Key roads */
+  .road { stroke:#fff; stroke-width:3; fill:none; stroke-linecap:round; }
+  .road-main { stroke:#ddeeff; stroke-width:5; }
+  .water { fill:#b8ddf7; }
+  .land { fill:#d4e8c2; }
+  .sand-area { fill:#f5e6c8; }
+  .building { fill:#c8d8e8; rx:2; }
+  .park { fill:#b8d8a0; }
+
+  .rider-marker { animation:bounce 1.2s ease-in-out infinite; transform-origin:center bottom; }
+  .dest-marker { }
+
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 4px rgba(0,201,167,.3)} 50%{box-shadow:0 0 0 8px rgba(0,201,167,.1)} }
+  @keyframes ripple { 0%{r:8;opacity:.8} 100%{r:24;opacity:0} }
+  .ripple-ring { animation:ripple 1.8s ease-out infinite; }
+  .ripple-ring2 { animation:ripple 1.8s ease-out infinite .6s; }
+
+  .eta-chip { position:absolute; top:12px; left:50%; transform:translateX(-50%); background:var(--navy); color:#fff; padding:8px 18px; border-radius:30px; font-size:13px; font-weight:800; display:flex; align-items:center; gap:8px; box-shadow:var(--shadow); white-space:nowrap; }
+  .eta-chip em { color:var(--lime); font-style:normal; }
+  .rider-info-bar { position:absolute; bottom:0; left:0; right:0; background:#fff; border-radius:var(--radius) var(--radius) 0 0; padding:16px 20px 8px; box-shadow:0 -4px 20px rgba(0,0,0,.1); display:flex; align-items:center; gap:14px; }
+  .rider-avatar { width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--teal),var(--navy)); display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
+  .rider-name { font-size:15px; font-weight:900; color:var(--navy); }
+  .rider-sub { font-size:11px; color:var(--muted); font-weight:600; margin-top:2px; }
+  .call-btn { margin-left:auto; background:var(--lime); border:none; border-radius:12px; padding:10px 18px; font-size:13px; font-weight:800; color:var(--navy); cursor:pointer; font-family:'Nunito',sans-serif; display:flex; align-items:center; gap:6px; }
+
+  /* ── PROFILE ── */
+  .profile-header { background:linear-gradient(135deg,var(--navy),#1a3a4a); padding:30px 20px 20px; text-align:center; }
+  .profile-avatar { width:72px; height:72px; border-radius:50%; background:var(--teal); margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:900; color:#fff; }
+  .profile-name { font-size:20px; font-weight:900; color:#fff; }
+  .profile-email { font-size:12px; color:var(--teal); margin-top:4px; }
+  .profile-stats { display:flex; justify-content:space-around; background:#fff; margin:16px; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); }
+  .pstat { text-align:center; }
+  .pstat-val { font-size:20px; font-weight:900; color:var(--navy); }
+  .pstat-lbl { font-size:10px; color:var(--muted); font-weight:700; margin-top:2px; }
+  .menu-list-profile { padding:0 16px; display:flex; flex-direction:column; gap:10px; }
+  .menu-row { background:#fff; border-radius:14px; padding:14px 16px; display:flex; align-items:center; gap:14px; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+  .menu-row-icon { font-size:22px; width:40px; height:40px; background:#f0f4f7; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+  .menu-row-text { flex:1; }
+  .menu-row-text h4 { font-size:14px; font-weight:800; color:var(--navy); }
+  .menu-row-text p { font-size:11px; color:var(--muted); }
+  .menu-row-arrow { font-size:18px; color:var(--muted); }
+
+  /* ── TOAST ── */
+  .toast { position:absolute; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--navy); color:#fff; padding:12px 20px; border-radius:30px; font-size:13px; font-weight:700; white-space:nowrap; opacity:0; transition:.3s; z-index:100; pointer-events:none; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ── WAVE DIVIDER ── */
+  .wave-divider { height:24px; overflow:hidden; }
+  .wave-divider svg { display:block; }
+
+  /* ── ORDER PLACED SCREEN ── */
+  .confirm-screen { background:var(--navy); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:40px 30px; gap:16px; }
+  .confirm-icon { font-size:80px; animation:bounce 1s ease-in-out 3; }
+  .confirm-screen h2 { font-size:28px; font-weight:900; color:#fff; }
+  .confirm-screen h2 em { color:var(--lime); font-style:normal; }
+  .confirm-screen p { color:var(--muted); font-size:14px; line-height:1.6; }
+  .confirm-btn { background:var(--lime); color:var(--navy); border:none; border-radius:16px; padding:16px 40px; font-size:16px; font-weight:900; font-family:'Nunito',sans-serif; cursor:pointer; margin-top:10px; }
+  .order-num { background:rgba(255,255,255,.08); border-radius:12px; padding:12px 24px; color:var(--teal); font-size:13px; font-weight:800; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ════════════ HOME SCREEN ════════════ -->
+  <div class="screen" id="screen-home">
+    <div class="topbar">
+      <div>
+        <div class="logo">Zippy's<span>⚡</span></div>
+        <div class="topbar-sub">📍 Siesta Key, FL</div>
+      </div>
+      <div class="avatar">JM</div>
+    </div>
+
+    <div class="scroll-area">
+      <!-- Hero -->
+      <div class="hero" style="margin-top:14px;">
+        <h2>Fast. Fresh.<br><em>Electric.</em></h2>
+        <p>Delivered by e-bike across Siesta Key</p>
+        <div class="hero-badge">⚡ Avg 18 min delivery</div>
+      </div>
+
+      <!-- Search -->
+      <div class="search-wrap" style="margin-top:14px;">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search restaurants or food...">
+      </div>
+
+      <!-- Categories -->
+      <div class="section-hdr"><h3>Categories</h3></div>
+      <div class="cats">
+        <div class="cat-pill active" onclick="filterCat(this,'All')">🍽️ All</div>
+        <div class="cat-pill" onclick="filterCat(this,'Burgers')">🍔 Burgers</div>
+        <div class="cat-pill" onclick="filterCat(this,'Seafood')">🦞 Seafood</div>
+        <div class="cat-pill" onclick="filterCat(this,'Pizza')">🍕 Pizza</div>
+        <div class="cat-pill" onclick="filterCat(this,'Tacos')">🌮 Tacos</div>
+        <div class="cat-pill" onclick="filterCat(this,'Drinks')">🥤 Drinks</div>
+        <div class="cat-pill" onclick="filterCat(this,'Ice Cream')">🍦 Ice Cream</div>
+      </div>
+
+      <!-- Restaurants -->
+      <div class="section-hdr"><h3>Near You on Siesta Key</h3><a>See all</a></div>
+      <div class="rest-grid">
+
+        <div class="rest-card" onclick="openRestaurant('Siesta Key Oyster Bar','🦪','Seafood · Bar','4.8','15-22','$4.99','Free delivery today','promo')">
+          <div class="rest-img" style="background:linear-gradient(135deg,#0D1F2D,#1a4a5a);">
+            🦪
+            <div class="rest-badge promo">🎉 Free Delivery</div>
+          </div>
+          <div class="rest-info">
+            <h4>Siesta Key Oyster Bar</h4>
+            <div class="rest-meta">
+              <span>⭐ 4.8</span>
+              <span>🕐 15–22 min</span>
+              <span class="tag">Seafood</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rest-card" onclick="openRestaurant('Gilligan\'s Island Bar','🍔','Burgers · American','4.6','18-28','$2.99','','')">
+          <div class="rest-img" style="background:linear-gradient(135deg,#3a1a0d,#6b3a1a);">
+            🍔
+            <div class="rest-badge">Popular</div>
+          </div>
+          <div class="rest-info">
+            <h4>Gilligan's Island Bar</h4>
+            <div class="rest-meta">
+              <span>⭐ 4.6</span>
+              <span>🕐 18–28 min</span>
+              <span class="tag">American</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rest-card" onclick="openRestaurant('Beach Club Tacos','🌮','Mexican · Fresh','4.9','12-20','$1.99','','')">
+          <div class="rest-img" style="background:linear-gradient(135deg,#2d1a0d,#5a3a0d);">
+            🌮
+            <div class="rest-badge">⚡ Quick</div>
+          </div>
+          <div class="rest-info">
+            <h4>Beach Club Tacos</h4>
+            <div class="rest-meta">
+              <span>⭐ 4.9</span>
+              <span>🕐 12–20 min</span>
+              <span class="tag">Mexican</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rest-card" onclick="openRestaurant('Chill Scoops','🍦','Ice Cream · Desserts','4.7','10-15','$1.99','','')">
+          <div class="rest-img" style="background:linear-gradient(135deg,#1a0d2d,#3a1a5a);">
+            🍦
+            <div class="rest-badge">Sweet</div>
+          </div>
+          <div class="rest-info">
+            <h4>Chill Scoops</h4>
+            <div class="rest-meta">
+              <span>⭐ 4.7</span>
+              <span>🕐 10–15 min</span>
+              <span class="tag">Desserts</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div style="height:10px;"></div>
+    </div>
+    <div class="bottomnav">
+      <button class="nav-btn active" onclick="showScreen('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+      <button class="nav-btn" onclick="showScreen('orders')"><span class="icon">📋</span><span class="label">Orders</span></button>
+      <button class="nav-btn" onclick="showScreen('track')"><span class="icon">📍</span><span class="label">Track</span></button>
+      <button class="nav-btn" onclick="showScreen('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
+    </div>
+  </div>
+
+  <!-- ════════════ RESTAURANT / MENU SCREEN ════════════ -->
+  <div class="screen hidden" id="screen-restaurant">
+    <div class="menu-header">
+      <button class="back-btn" onclick="showScreen('home')">←</button>
+      <div>
+        <h2 id="rest-name">Restaurant</h2>
+        <p id="rest-sub">Loading...</p>
+      </div>
+    </div>
+    <div class="scroll-area" style="padding-bottom:140px;">
+      <div class="menu-list" id="menu-list"></div>
+    </div>
+    <div style="position:absolute;bottom:0;left:0;right:0;padding:12px 0 16px;background:var(--sand);">
+      <div class="cart-bubble" id="cart-bubble" style="display:none;" onclick="showScreen('checkout')">
+        <div class="cb-left">View Cart <span class="cb-count" id="cart-count">0</span></div>
+        <div class="cb-right" id="cart-total">$0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ CHECKOUT SCREEN ════════════ -->
+  <div class="screen hidden" id="screen-checkout">
+    <div class="menu-header">
+      <button class="back-btn" onclick="showScreen('restaurant')">←</button>
+      <div><h2>Checkout</h2><p>Almost there!</p></div>
+    </div>
+    <div class="scroll-area checkout-body">
+      <div class="checkout-card">
+        <h3>📍 Delivery Address</h3>
+        <div class="addr-box">
+          <div class="pin">📌</div>
+          <div>
+            <p>1234 Beach Rd, Siesta Key</p>
+            <small>Unit 4B · Sarasota, FL 34242</small>
+          </div>
+        </div>
+      </div>
+      <div class="checkout-card" id="order-summary">
+        <h3>🛒 Order Summary</h3>
+      </div>
+      <div class="checkout-card">
+        <h3>💳 Payment</h3>
+        <div class="pay-row">
+          <div class="pay-method active" onclick="selectPay(this)">
+            <div class="pm-icon">💳</div>
+            <p>Card</p>
+          </div>
+          <div class="pay-method" onclick="selectPay(this)">
+            <div class="pm-icon">📱</div>
+            <p>Apple Pay</p>
+          </div>
+          <div class="pay-method" onclick="selectPay(this)">
+            <div class="pm-icon">💵</div>
+            <p>Cash</p>
+          </div>
+        </div>
+      </div>
+      <div class="checkout-card">
+        <div class="checkout-row">
+          <span>Subtotal</span><span id="co-sub">$0.00</span>
+        </div>
+        <div class="checkout-row">
+          <span>Delivery Fee</span><span id="co-fee">$2.99</span>
+        </div>
+        <div class="checkout-row">
+          <span>Tip (15%)</span><span id="co-tip">$0.00</span>
+        </div>
+        <div class="checkout-row total">
+          <span>Total</span><span id="co-total">$0.00</span>
+        </div>
+      </div>
+      <button class="place-btn" onclick="placeOrder()">⚡ Place Order</button>
+    </div>
+  </div>
+
+  <!-- ════════════ ORDER CONFIRMED SCREEN ════════════ -->
+  <div class="screen hidden confirm-screen" id="screen-confirm">
+    <div class="confirm-icon">⚡</div>
+    <h2>Order <em>Placed!</em></h2>
+    <div class="order-num">Order #ZK-2847</div>
+    <p>Your rider Marco is picking up<br>your order now. Get ready!</p>
+    <button class="confirm-btn" onclick="showScreen('track')">Watch Live Map →</button>
+  </div>
+
+  <!-- ════════════ TRACK SCREEN ════════════ -->
+  <div class="screen hidden" id="screen-track">
+    <div class="track-top">
+      <h2>Live Tracking</h2>
+      <p>Marco • E-Bike #7 • Siesta Key</p>
+      <!-- Status steps -->
+      <div class="status-steps" style="margin-top:18px;">
+        <div class="step">
+          <div class="step-dot done">✓</div>
+          <div class="step-label done">Ordered</div>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step">
+          <div class="step-dot done">✓</div>
+          <div class="step-label done">Confirmed</div>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step">
+          <div class="step-dot active">🚲</div>
+          <div class="step-label active">On the way</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-dot">🏠</div>
+          <div class="step-label">Delivered</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Siesta Key Map SVG -->
+    <div class="map-container">
+      <svg class="map-svg" viewBox="0 0 430 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ocean water background -->
+        <rect width="430" height="320" fill="#a8d4f0"/>
+        <!-- Gulf of Mexico -->
+        <text x="30" y="160" fill="#88b8d8" font-size="11" font-family="sans-serif" opacity=".7">Gulf of Mexico</text>
+        <!-- Sarasota Bay -->
+        <text x="310" y="80" fill="#88b8d8" font-size="10" font-family="sans-serif" opacity=".7">Sarasota Bay</text>
+
+        <!-- Siesta Key island shape -->
+        <path d="M 90 40 Q 130 20 190 18 Q 260 16 310 30 Q 350 42 370 70 Q 385 95 380 130 Q 375 165 360 195 Q 340 225 310 240 Q 280 255 250 258 Q 220 262 190 256 Q 155 248 128 228 Q 100 205 88 175 Q 74 145 76 110 Q 78 72 90 40 Z" fill="#e8dfc8"/>
+
+        <!-- Beach (west shore) -->
+        <path d="M 90 40 Q 78 72 76 110 Q 74 145 88 175 Q 100 205 128 228 L 120 232 Q 92 210 78 180 Q 64 148 66 112 Q 68 74 82 44 Z" fill="#f5e6c0"/>
+
+        <!-- Green areas / parks -->
+        <ellipse cx="200" cy="140" rx="35" ry="20" fill="#c8dba8" opacity=".6"/>
+        <ellipse cx="280" cy="100" rx="25" ry="15" fill="#c8dba8" opacity=".6"/>
+        <ellipse cx="160" cy="190" rx="20" ry="12" fill="#c8dba8" opacity=".6"/>
+
+        <!-- Main roads -->
+        <!-- Midnight Pass Rd (spine) -->
+        <path d="M 160 35 Q 165 80 170 130 Q 175 180 180 220 Q 182 240 184 255" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <!-- Ocean Blvd -->
+        <path d="M 100 55 Q 140 50 180 50 Q 220 50 260 55 Q 300 60 340 75" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- Beach Rd (west) -->
+        <path d="M 98 80 Q 120 90 150 100 Q 168 108 168 130" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <!-- Cross streets -->
+        <path d="M 140 90 Q 200 88 250 95 Q 290 100 320 115" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M 145 145 Q 200 142 250 148 Q 295 153 325 165" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M 155 200 Q 210 198 250 200 Q 290 202 310 210" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Bridge to mainland -->
+        <path d="M 310 30 Q 360 20 400 15" stroke="#ddd" stroke-width="4" fill="none" stroke-dasharray="8,4"/>
+        <path d="M 320 240 Q 370 250 410 255" stroke="#ddd" stroke-width="4" fill="none" stroke-dasharray="8,4"/>
+
+        <!-- Buildings (simple rects) -->
+        <rect x="120" y="60" width="14" height="10" fill="#c0ceda" rx="2"/>
+        <rect x="138" y="58" width="10" height="12" fill="#b8c8d8" rx="2"/>
+        <rect x="200" y="55" width="16" height="11" fill="#c0ceda" rx="2"/>
+        <rect x="220" y="57" width="10" height="9" fill="#b8c8d8" rx="2"/>
+        <rect x="260" y="68" width="14" height="10" fill="#c0ceda" rx="2"/>
+        <rect x="145" y="155" width="12" height="9" fill="#c0ceda" rx="2"/>
+        <rect x="200" y="162" width="16" height="10" fill="#c0ceda" rx="2"/>
+        <rect x="240" y="160" width="12" height="9" fill="#b8c8d8" rx="2"/>
+        <rect x="280" y="168" width="10" height="8" fill="#c0ceda" rx="2"/>
+
+        <!-- Restaurant pin (pickup) -->
+        <g transform="translate(205,52)">
+          <circle cx="0" cy="0" r="10" fill="#FF6B6B"/>
+          <text x="0" y="4" text-anchor="middle" font-size="10">🍽</text>
+        </g>
+        <text x="218" y="50" font-size="9" fill="#FF6B6B" font-weight="bold" font-family="sans-serif">Pickup</text>
+
+        <!-- Destination pin -->
+        <g id="dest-pin" transform="translate(160,148)">
+          <circle cx="0" cy="0" r="10" fill="#00C9A7"/>
+          <circle class="ripple-ring" cx="0" cy="0" r="8" fill="none" stroke="#00C9A7" stroke-width="2" opacity=".7"/>
+          <circle class="ripple-ring2" cx="0" cy="0" r="8" fill="none" stroke="#00C9A7" stroke-width="2" opacity=".5"/>
+          <text x="0" y="4" text-anchor="middle" font-size="10">🏠</text>
+        </g>
+        <text x="108" y="146" font-size="9" fill="#00C9A7" font-weight="bold" font-family="sans-serif">Your spot</text>
+
+        <!-- E-Bike rider (animated along route) -->
+        <g id="rider-marker" class="rider-marker">
+          <circle cx="0" cy="0" r="14" fill="var(--navy)" stroke="var(--lime)" stroke-width="2.5"/>
+          <text x="0" y="5" text-anchor="middle" font-size="13">🚲</text>
+        </g>
+      </svg>
+
+      <div class="eta-chip">⚡ ETA <em id="eta-text">8 min</em> away</div>
+
+      <div class="rider-info-bar">
+        <div class="rider-avatar">🧑</div>
+        <div>
+          <div class="rider-name">Marco R.</div>
+          <div class="rider-sub">⭐ 4.97 · E-Bike #7 · Zippy's Rider</div>
+        </div>
+        <button class="call-btn">📞 Call</button>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <button class="nav-btn" onclick="showScreen('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+      <button class="nav-btn" onclick="showScreen('orders')"><span class="icon">📋</span><span class="label">Orders</span></button>
+      <button class="nav-btn active" onclick="showScreen('track')"><span class="icon">📍</span><span class="label">Track</span></button>
+      <button class="nav-btn" onclick="showScreen('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
+    </div>
+  </div>
+
+  <!-- ════════════ ORDERS SCREEN ════════════ -->
+  <div class="screen hidden" id="screen-orders">
+    <div class="topbar">
+      <div>
+        <div class="logo" style="font-size:20px;">My Orders</div>
+        <div class="topbar-sub">Order history</div>
+      </div>
+    </div>
+    <div class="scroll-area" style="padding:16px 16px 80px;">
+      <!-- Active order -->
+      <div style="font-size:12px;font-weight:900;color:var(--teal);padding:4px 0 10px;">ACTIVE</div>
+      <div style="background:#fff;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px;cursor:pointer;" onclick="showScreen('track')">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:32px;">🌮</div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:900;color:var(--navy);">Beach Club Tacos</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">2× Shrimp Taco · 1× Agua Fresca</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:14px;font-weight:900;color:var(--teal);">$18.47</div>
+            <div style="font-size:10px;background:#e6faf6;color:var(--teal);border-radius:6px;padding:2px 8px;margin-top:4px;font-weight:800;">🚲 On the way</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;background:#f7fafc;border-radius:10px;padding:8px 12px;font-size:12px;color:var(--navy);font-weight:700;">📍 Watch live → Tap to track</div>
+      </div>
+
+      <!-- Past orders -->
+      <div style="font-size:12px;font-weight:900;color:var(--muted);padding:4px 0 10px;">PAST ORDERS</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;">🦪</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:800;color:var(--navy);">Siesta Key Oyster Bar</div>
+            <div style="font-size:11px;color:var(--muted);">Yesterday · $34.20</div>
+          </div>
+          <button style="background:var(--navy);color:var(--lime);border:none;border-radius:10px;padding:8px 14px;font-size:11px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Reorder</button>
+        </div>
+        <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;">🍔</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:800;color:var(--navy);">Gilligan's Island Bar</div>
+            <div style="font-size:11px;color:var(--muted);">3 days ago · $22.15</div>
+          </div>
+          <button style="background:var(--navy);color:var(--lime);border:none;border-radius:10px;padding:8px 14px;font-size:11px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Reorder</button>
+        </div>
+        <div style="background:#fff;border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;">🍦</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:800;color:var(--navy);">Chill Scoops</div>
+            <div style="font-size:11px;color:var(--muted);">1 week ago · $11.80</div>
+          </div>
+          <button style="background:var(--navy);color:var(--lime);border:none;border-radius:10px;padding:8px 14px;font-size:11px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;">Reorder</button>
+        </div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <button class="nav-btn" onclick="showScreen('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+      <button class="nav-btn active" onclick="showScreen('orders')"><span class="icon">📋</span><span class="label">Orders</span></button>
+      <button class="nav-btn" onclick="showScreen('track')"><span class="icon">📍</span><span class="label">Track</span></button>
+      <button class="nav-btn" onclick="showScreen('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
+    </div>
+  </div>
+
+  <!-- ════════════ PROFILE SCREEN ════════════ -->
+  <div class="screen hidden" id="screen-profile">
+    <div class="scroll-area" style="padding-bottom:80px;">
+      <div class="profile-header">
+        <div class="profile-avatar">JM</div>
+        <div class="profile-name">Jamie Moss</div>
+        <div class="profile-email">jamie@email.com</div>
+      </div>
+      <div class="profile-stats">
+        <div class="pstat"><div class="pstat-val">18</div><div class="pstat-lbl">Orders</div></div>
+        <div class="pstat"><div class="pstat-val">⭐ 4.9</div><div class="pstat-lbl">Rating</div></div>
+        <div class="pstat"><div class="pstat-val">$247</div><div class="pstat-lbl">Saved</div></div>
+      </div>
+      <div class="menu-list-profile">
+        <div class="menu-row">
+          <div class="menu-row-icon">📍</div>
+          <div class="menu-row-text"><h4>Saved Addresses</h4><p>Home, Beach, Work</p></div>
+          <div class="menu-row-arrow">›</div>
+        </div>
+        <div class="menu-row">
+          <div class="menu-row-icon">💳</div>
+          <div class="menu-row-text"><h4>Payment Methods</h4><p>Visa ··· 4242</p></div>
+          <div class="menu-row-arrow">›</div>
+        </div>
+        <div class="menu-row">
+          <div class="menu-row-icon">🎁</div>
+          <div class="menu-row-text"><h4>Zippy's Rewards</h4><p>240 pts · Free delivery soon!</p></div>
+          <div class="menu-row-arrow">›</div>
+        </div>
+        <div class="menu-row">
+          <div class="menu-row-icon">🔔</div>
+          <div class="menu-row-text"><h4>Notifications</h4><p>On</p></div>
+          <div class="menu-row-arrow">›</div>
+        </div>
+        <div class="menu-row">
+          <div class="menu-row-icon">⚡</div>
+          <div class="menu-row-text"><h4>About Zippy's</h4><p>100% electric · Zero emissions</p></div>
+          <div class="menu-row-arrow">›</div>
+        </div>
+        <div class="menu-row" style="opacity:.6;">
+          <div class="menu-row-icon">🚪</div>
+          <div class="menu-row-text"><h4>Sign Out</h4><p></p></div>
+        </div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <button class="nav-btn" onclick="showScreen('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+      <button class="nav-btn" onclick="showScreen('orders')"><span class="icon">📋</span><span class="label">Orders</span></button>
+      <button class="nav-btn" onclick="showScreen('track')"><span class="icon">📍</span><span class="label">Track</span></button>
+      <button class="nav-btn active" onclick="showScreen('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">Item added to cart!</div>
+</div>
+
+<script>
+/* ── State ── */
+let cart = [];
+let currentRest = {};
+
+const menus = {
+  "Siesta Key Oyster Bar": [
+    { name:"Gulf Oysters (6)", desc:"Fresh local, mignonette, lemon", price:14.99, emoji:"🦪" },
+    { name:"Shrimp Po'Boy", desc:"Crispy, remoulade, slaw", price:13.49, emoji:"🥪" },
+    { name:"Crab Dip Basket", desc:"House crab, warm bread", price:11.99, emoji:"🦀" },
+    { name:"Fish Tacos ×2", desc:"Mahi mahi, mango salsa", price:12.49, emoji:"🌮" },
+    { name:"Key Lime Squeeze", desc:"Fresh squeezed, light", price:4.49, emoji:"🍋" },
+  ],
+  "Gilligan's Island Bar": [
+    { name:"Island Smash Burger", desc:"Double patty, special sauce, pickles", price:14.99, emoji:"🍔" },
+    { name:"Sweet Potato Fries", desc:"House seasoning, aioli", price:6.49, emoji:"🍟" },
+    { name:"Chicken Sandwich", desc:"Crispy, pickled jalapeño", price:13.49, emoji:"🍗" },
+    { name:"Tropical Shake", desc:"Mango, coconut, pineapple", price:7.99, emoji:"🥤" },
+    { name:"Onion Ring Tower", desc:"Beer battered, ranch", price:7.49, emoji:"🧅" },
+  ],
+  "Beach Club Tacos": [
+    { name:"Shrimp Taco", desc:"Grilled shrimp, avocado crema, pico", price:6.99, emoji:"🦐" },
+    { name:"Carnitas Taco", desc:"Slow-roasted, cilantro, onion", price:5.99, emoji:"🌮" },
+    { name:"Cauliflower Taco", desc:"Crispy, chipotle, slaw", price:5.49, emoji:"🥦" },
+    { name:"Chips & Guac", desc:"Fresh guac, salsa roja", price:8.99, emoji:"🥑" },
+    { name:"Agua Fresca", desc:"Hibiscus or tamarind", price:3.99, emoji:"🍹" },
+  ],
+  "Chill Scoops": [
+    { name:"Double Scoop Cup", desc:"2 scoops, your choice", price:5.99, emoji:"🍦" },
+    { name:"Waffle Cone", desc:"Fresh made, any flavor", price:6.49, emoji:"🍧" },
+    { name:"Banana Split", desc:"3 scoops, toppings, whip", price:8.99, emoji:"🍌" },
+    { name:"Milkshake", desc:"Thick, creamy, dreamy", price:7.99, emoji:"🥛" },
+    { name:"Float", desc:"Root beer or cream soda", price:5.49, emoji:"🍺" },
+  ],
+};
+
+/* ── Screen Navigation ── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById('screen-' + id).classList.remove('hidden');
+}
+
+/* ── Category filter ── */
+function filterCat(el, cat) {
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ── Open Restaurant ── */
+function openRestaurant(name, emoji, sub, rating, time, fee, badge, badgeClass) {
+  currentRest = { name, emoji, sub, rating, time, fee };
+  cart = [];
+  document.getElementById('rest-name').textContent = name;
+  document.getElementById('rest-sub').textContent = sub + ' · ⭐ ' + rating + ' · 🕐 ' + time + ' min · Delivery ' + fee;
+
+  const menuItems = menus[name] || [];
+  const ml = document.getElementById('menu-list');
+  ml.innerHTML = menuItems.map((item, i) => `
+    <div class="menu-item">
+      <div class="menu-item-emoji">${item.emoji}</div>
+      <div class="menu-item-info">
+        <h4>${item.name}</h4>
+        <p>${item.desc}</p>
+        <div class="menu-item-price">$${item.price.toFixed(2)}</div>
+      </div>
+      <button class="add-btn" onclick="addToCart(${i}, '${name}')">+</button>
+    </div>
+  `).join('');
+
+  updateCartBubble();
+  showScreen('restaurant');
+}
+
+/* ── Cart ── */
+function addToCart(idx, restName) {
+  const item = menus[restName][idx];
+  const existing = cart.find(c => c.name === item.name);
+  if (existing) existing.qty++;
+  else cart.push({ ...item, qty: 1 });
+  updateCartBubble();
+  showToast('🛒 Added to cart!');
+}
+
+function updateCartBubble() {
+  const bubble = document.getElementById('cart-bubble');
+  if (cart.length === 0) { bubble.style.display = 'none'; return; }
+  bubble.style.display = 'flex';
+  const totalQty = cart.reduce((s, c) => s + c.qty, 0);
+  const totalAmt = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  document.getElementById('cart-count').textContent = totalQty;
+  document.getElementById('cart-total').textContent = '$' + totalAmt.toFixed(2);
+}
+
+/* ── Checkout ── */
+function buildCheckout() {
+  const sub = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  const fee = parseFloat(currentRest.fee) || 2.99;
+  const tip = sub * 0.15;
+  const total = sub + fee + tip;
+
+  document.getElementById('co-sub').textContent = '$' + sub.toFixed(2);
+  document.getElementById('co-fee').textContent = '$' + fee.toFixed(2);
+  document.getElementById('co-tip').textContent = '$' + tip.toFixed(2);
+  document.getElementById('co-total').textContent = '$' + total.toFixed(2);
+
+  const summary = document.getElementById('order-summary');
+  summary.innerHTML = `<h3>🛒 Order Summary</h3>` + cart.map(c => `
+    <div class="checkout-row">
+      <span>${c.qty}× ${c.name}</span>
+      <span>$${(c.price * c.qty).toFixed(2)}</span>
+    </div>
+  `).join('');
+}
+
+function selectPay(el) {
+  document.querySelectorAll('.pay-method').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function placeOrder() {
+  showScreen('confirm');
+  setTimeout(() => startRiderAnimation(), 100);
+}
+
+/* ── Rider Animation ── */
+let riderStep = 0;
+const riderPath = [
+  { x: 205, y: 65 },
+  { x: 198, y: 85 },
+  { x: 188, y: 100 },
+  { x: 182, y: 115 },
+  { x: 176, y: 128 },
+  { x: 170, y: 138 },
+  { x: 165, y: 145 },
+  { x: 160, y: 148 },
+];
+let etaMinutes = 8;
+let etaInterval;
+
+function startRiderAnimation() {
+  const rider = document.getElementById('rider-marker');
+  if (!rider) return;
+  const pos = riderPath[0];
+  rider.setAttribute('transform', `translate(${pos.x},${pos.y})`);
+
+  clearInterval(etaInterval);
+  riderStep = 0;
+  etaMinutes = 8;
+
+  etaInterval = setInterval(() => {
+    riderStep++;
+    if (riderStep >= riderPath.length) {
+      clearInterval(etaInterval);
+      document.getElementById('eta-text').textContent = 'Arrived!';
+      showToast('🏠 Your order has arrived!');
+      return;
+    }
+    const p = riderPath[riderStep];
+    rider.setAttribute('transform', `translate(${p.x},${p.y})`);
+    etaMinutes = Math.max(1, 8 - riderStep);
+    const etaEl = document.getElementById('eta-text');
+    if (etaEl) etaEl.textContent = etaMinutes + ' min';
+  }, 1400);
+}
+
+/* ── Toast ── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ── Override nav clicks to update checkout ── */
+document.addEventListener('click', e => {
+  if (e.target.closest('#screen-restaurant') && document.getElementById('screen-checkout')) {
+    buildCheckout();
+  }
+});
+
+/* Init rider on track screen load */
+const origShowScreen = showScreen;
+window.showScreen = function(id) {
+  origShowScreen(id);
+  if (id === 'track') startRiderAnimation();
+  if (id === 'checkout') buildCheckout();
+};
+</script>
+</body>
+</html>
