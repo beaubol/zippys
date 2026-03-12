@@ -145,7 +145,7 @@
         <div class="logo">Zippy's<span>⚡</span></div>
         <div class="topbar-sub">📍 Siesta Key, FL</div>
       </div>
-      <div class="avatar">JM</div>
+      <div class="avatar">BP</div>
     </div>
     <div class="scroll-area">
       <div class="hero" style="margin-top:14px;">
@@ -179,6 +179,7 @@
     </div>
     <div class="bottomnav">
       <button class="nav-btn active" onclick="showScreen('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+      <button class="nav-btn" onclick="showScreen('orders')"><span class="icon">📋</span><span class="label">Orders</span></button>
       <button class="nav-btn" onclick="showScreen('track')"><span class="icon">📍</span><span class="label">Track</span></button>
       <button class="nav-btn" onclick="showScreen('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
     </div>
@@ -216,6 +217,37 @@
     </div>
   </div>
 
+  <div class="screen hidden" id="screen-orders">
+    <div class="topbar">
+      <div>
+        <div class="logo" style="font-size:20px;">My Orders</div>
+        <div class="topbar-sub">Order history</div>
+      </div>
+    </div>
+    <div class="scroll-area" style="padding:16px 16px 80px;">
+      <div style="font-size:12px;font-weight:900;color:var(--teal);padding:4px 0 10px;">ACTIVE</div>
+      <div style="background:#fff;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px;cursor:pointer;" onclick="showScreen('track')">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:32px;">🌮</div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:900;color:var(--navy);">Beach Club Tacos</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">2× Shrimp Taco · 1× Agua Fresca</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:14px;font-weight:900;color:var(--teal);">$18.47</div>
+            <div style="font-size:10px;background:#e6faf6;color:var(--teal);border-radius:6px;padding:2px 8px;margin-top:4px;font-weight:800;">🚲 On the way</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <button class="nav-btn" onclick="showScreen('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+      <button class="nav-btn active" onclick="showScreen('orders')"><span class="icon">📋</span><span class="label">Orders</span></button>
+      <button class="nav-btn" onclick="showScreen('track')"><span class="icon">📍</span><span class="label">Track</span></button>
+      <button class="nav-btn" onclick="showScreen('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
+    </div>
+  </div>
+
   <div class="screen hidden" id="screen-track">
     <div class="track-top">
       <h2>Live Tracking</h2>
@@ -240,6 +272,7 @@
     </div>
     <div class="bottomnav">
       <button class="nav-btn" onclick="showScreen('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+      <button class="nav-btn" onclick="showScreen('orders')"><span class="icon">📋</span><span class="label">Orders</span></button>
       <button class="nav-btn active" onclick="showScreen('track')"><span class="icon">📍</span><span class="label">Track</span></button>
       <button class="nav-btn" onclick="showScreen('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
     </div>
@@ -248,8 +281,8 @@
   <div class="screen hidden" id="screen-profile">
     <div class="scroll-area" style="padding-bottom:80px;">
       <div class="profile-header">
-        <div class="profile-avatar">JM</div>
-        <div class="profile-name">Paula Schultz</div>
+        <div class="profile-avatar">BP</div>
+        <div class="profile-name">Beau Parry</div>
       </div>
       <div class="menu-list-profile">
         
@@ -266,6 +299,7 @@
     </div>
     <div class="bottomnav">
       <button class="nav-btn" onclick="showScreen('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+      <button class="nav-btn" onclick="showScreen('orders')"><span class="icon">📋</span><span class="label">Orders</span></button>
       <button class="nav-btn" onclick="showScreen('track')"><span class="icon">📍</span><span class="label">Track</span></button>
       <button class="nav-btn active" onclick="showScreen('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
     </div>
