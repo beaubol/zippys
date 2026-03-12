@@ -676,7 +676,56 @@ const menus = {
     { name:"Float", desc:"Root beer or cream soda", price:5.49, emoji:"🍺" },
   ],
 };
+/* ── Spot On GPS Broadcasting (Driver Mode) ── */
+let driverWatchId = null;
 
+function toggleDriverMode() {
+  const statusText = document.getElementById('driver-status');
+  const btn = document.getElementById('driver-btn');
+
+  // If already tracking, turn it off
+  if (driverWatchId) {
+    navigator.geolocation.clearWatch(driverWatchId);
+    driverWatchId = null;
+    statusText.textContent = "Tap to start broadcasting GPS";
+    statusText.style.color = "var(--muted)";
+    showToast("🛰️ Driver tracking offline.");
+    return;
+  }
+
+  // Check if the browser supports GPS
+  if (!navigator.geolocation) {
+    showToast("Geolocation is not supported by your browser");
+    return;
+  }
+
+  statusText.textContent = "Broadcasting live... ⚡";
+  statusText.style.color = "var(--teal)";
+  showToast("🛰️ Driver tracking online!");
+
+  // The secret sauce for "Spot On" tracking
+  driverWatchId = navigator.geolocation.watchPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      
+      // Package the coordinates and send them to the Python WebSocket
+      const payload = JSON.stringify({ lat: lat, lng: lng });
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(payload);
+      }
+    },
+    (error) => {
+      console.error("GPS Error: ", error);
+      showToast("GPS Error: " + error.message);
+    },
+    {
+      enableHighAccuracy: true, // Forces the phone to use the actual GPS chip, not just cell towers
+      maximumAge: 0,            // Prevents caching old locations
+      timeout: 5000
+    }
+  );
+}
 /* ── Screen Navigation ── */
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));

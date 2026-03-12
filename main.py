@@ -1,30 +1,36 @@
-from fastapi import FastAPI, WebSocket
-import asyncio
-import json
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from typing import List
 
 app = FastAPI()
 
+# This manager handles all active users (drivers and customers)
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    
-    # Simulated GPS pings moving down the road in Siesta Key
-    route = [
-        [27.2750, -82.5510],
-        [27.2740, -82.5505],
-        [27.2730, -82.5500],
-        [27.2720, -82.5495],
-        [27.2710, -82.5485],
-        [27.2690, -82.5475],
-        [27.2670, -82.5463] # Arrives at destination
-    ]
-    
+    await manager.connect(websocket)
     try:
-        # Loop through the coordinates and send one every 2 seconds
-        for coords in route:
-            await asyncio.sleep(2) 
-            data = {"lat": coords[0], "lng": coords[1]}
-            await websocket.send_text(json.dumps(data))
+        while True:
+            # Wait for the driver's phone to send a GPS ping
+            data = await websocket.receive_text()
             
-    except Exception as e:
-        print("Radio silent. Connection closed.")
+            # Instantly bounce that ping to everyone looking at the map
+            await manager.broadcast(data)
+            
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
