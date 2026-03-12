@@ -407,7 +407,7 @@ function initMap() {
   riderMarker = L.marker([27.2750, -82.5510], { icon: riderIcon }).addTo(map);
 
   // !!! REPLACE THIS URL WITH YOUR ACTUAL CODESPACE ADDRESS !!!
-  const wsUrl = "wss://ubiquitous-space-goldfish-5w4jwg4p434x6r.github.dev/"; 
+  const wsUrl = "wss://ubiquitous-space-goldfish-5w4jwg4p434x6r-8000.app.github.dev/ws";
   
   socket = new WebSocket(wsUrl);
   socket.onmessage = function(event) {
