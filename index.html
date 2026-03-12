@@ -306,7 +306,40 @@
   </div>
 
   <div class="toast" id="toast"></div>
-</div>
+
+  <div class="bottomnav" id="global-nav" style="z-index: 1000; background: var(--navy);">
+    <button class="nav-btn active" id="nav-home" onclick="showScreen('home')"><span class="icon">🏠</span><span class="label">Home</span></button>
+    <button class="nav-btn" id="nav-orders" onclick="showScreen('orders')"><span class="icon">📋</span><span class="label">Orders</span></button>
+    <button class="nav-btn" id="nav-track" onclick="showScreen('track')"><span class="icon">📍</span><span class="label">Track</span></button>
+    <button class="nav-btn" id="nav-profile" onclick="showScreen('profile')"><span class="icon">👤</span><span class="label">Profile</span></button>
+  </div>
+</div> ```
+
+*(Note: You can now safely delete the `<div class="bottomnav">...</div>` blocks that are trapped inside the individual Home, Orders, Track, and Profile screens to clean up your code).*
+
+### Step 2: Make the Buttons "Smart" in JavaScript
+Now that the navigation bar is global, we need to teach JavaScript to update which button lights up green depending on the screen the user is viewing.
+
+Scroll down to your `<script>` section and replace your current `showScreen` function with this upgraded version:
+
+```javascript
+function showScreen(id) {
+  // 1. Hide all screens
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  
+  // 2. Show the targeted screen
+  const targetScreen = document.getElementById('screen-' + id);
+  if (targetScreen) targetScreen.classList.remove('hidden');
+  
+  // 3. Update the global navigation highlights
+  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+  const activeBtn = document.getElementById('nav-' + id);
+  if (activeBtn) activeBtn.classList.add('active');
+  
+  // 4. Trigger specific screen logic
+  if (id === 'track') initMap();
+  if (id === 'checkout') buildCheckout();
+}
 
 <script>
 let cart = [];
